@@ -3,9 +3,15 @@ const devApiProxyTarget =
 const isDev = process.env.NODE_ENV !== 'production'
 
 export default defineNuxtConfig({
-  ssr: true,
+  // Docker-on-Windows dev can intermittently fail to generate Nitro server files.
+  // Disable SSR in local dev to keep the app reliably available at localhost:3000.
+  ssr: false,
   pages: true,
   devtools: { enabled: false },
+  experimental: {
+    // Prevent Docker+Windows dev race that can miss generated app manifest files.
+    appManifest: false,
+  },
   app: {
     head: {
       titleTemplate: "%s | Kalapak Code Team",
