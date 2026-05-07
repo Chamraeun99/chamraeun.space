@@ -8,6 +8,9 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
@@ -22,7 +25,10 @@ class SocialAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
         } catch (\Exception $e) {
-            $frontendUrl = env('FRONTEND_URL', 'https://kalapak-team.space');
+            Log::error('Google social login failed', [
+                'message' => $e->getMessage(),
+            ]);
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
             return redirect($frontendUrl . '/auth/login?error=google_auth_failed');
         }
 
@@ -53,7 +59,7 @@ class SocialAuthController extends Controller
         }
 
         $token = $user->createToken('auth-token')->plainTextToken;
-        $frontendUrl = env('FRONTEND_URL', 'https://kalapak-team.space');
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
         return redirect($frontendUrl . '/auth/google/callback?token=' . $token);
     }
@@ -68,12 +74,16 @@ class SocialAuthController extends Controller
         try {
             $githubUser = Socialite::driver('github')->stateless()->user();
         } catch (\Exception $e) {
-            $frontendUrl = env('FRONTEND_URL', 'https://kalapak-team.space');
+            Log::error('GitHub social login failed', [
+                'message' => $e->getMessage(),
+            ]);
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
             return redirect($frontendUrl . '/auth/login?error=github_auth_failed');
         }
 
+        $email = $githubUser->getEmail();
         $user = User::where('github_id', $githubUser->getId())
-            ->orWhere('email', $githubUser->getEmail())
+            ->when($email, fn ($q) => $q->orWhere('email', $email))
             ->first();
 
         if ($user) {
@@ -85,18 +95,20 @@ class SocialAuthController extends Controller
             }
         } else {
             $memberRole = Role::where('name', 'member')->first();
+            $fallbackEmail = 'github_' . $githubUser->getId() . '@users.noreply.github.com';
             $user = User::create([
                 'name' => $githubUser->getName() ?? $githubUser->getNickname(),
-                'email' => $githubUser->getEmail(),
+                'email' => $email ?: $fallbackEmail,
                 'github_id' => $githubUser->getId(),
                 'avatar' => $githubUser->getAvatar(),
-                'password' => null,
+                // Keep compatibility with schemas that still require password.
+                'password' => Hash::make(Str::random(40)),
                 'role_id' => $memberRole->id,
             ]);
         }
 
         $token = $user->createToken('auth-token')->plainTextToken;
-        $frontendUrl = env('FRONTEND_URL', 'https://kalapak-team.space');
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
         return redirect($frontendUrl . '/auth/github/callback?token=' . $token);
     }

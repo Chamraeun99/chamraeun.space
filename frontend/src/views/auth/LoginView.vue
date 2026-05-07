@@ -166,6 +166,7 @@ import VueTurnstile from 'vue-turnstile'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const config = useRuntimeConfig()
 
 const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 const turnstileToken = ref('')
@@ -174,12 +175,12 @@ const error = ref('')
 const showPassword = ref(false)
 
 function loginWithGoogle() {
-  const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://kalapakspace-backends.onrender.com'
+  const backendUrl = (config.public.apiUrl || 'http://127.0.0.1:8000/api').replace(/\/api\/?$/, '')
   window.location.href = `${backendUrl}/auth/google/redirect`
 }
 
 function loginWithGithub() {
-  const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://kalapakspace-backends.onrender.com'
+  const backendUrl = (config.public.apiUrl || 'http://127.0.0.1:8000/api').replace(/\/api\/?$/, '')
   window.location.href = `${backendUrl}/auth/github/redirect`
 }
 
