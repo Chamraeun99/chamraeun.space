@@ -15,6 +15,17 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
 {
+    private function memberRole(): Role
+    {
+        return Role::firstOrCreate(
+            ['name' => 'member'],
+            [
+                'display_name' => 'Member',
+                'description' => 'Registered user with basic access',
+            ]
+        );
+    }
+
     public function redirectToGoogle(): RedirectResponse
     {
         return Socialite::driver('google')->stateless()->redirect();
@@ -47,7 +58,7 @@ class SocialAuthController extends Controller
             }
         } else {
             // Create new user
-            $memberRole = Role::where('name', 'member')->first();
+            $memberRole = $this->memberRole();
             $user = User::create([
                 'name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
@@ -94,7 +105,7 @@ class SocialAuthController extends Controller
                 $user->update(['avatar' => $githubUser->getAvatar()]);
             }
         } else {
-            $memberRole = Role::where('name', 'member')->first();
+            $memberRole = $this->memberRole();
             $fallbackEmail = 'github_' . $githubUser->getId() . '@users.noreply.github.com';
             $user = User::create([
                 'name' => $githubUser->getName() ?? $githubUser->getNickname(),

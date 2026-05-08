@@ -13,7 +13,13 @@ class RegisterController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
-        $memberRole = Role::where('name', 'member')->first();
+        $memberRole = Role::firstOrCreate(
+            ['name' => 'member'],
+            [
+                'display_name' => 'Member',
+                'description' => 'Registered user with basic access',
+            ]
+        );
 
         $user = User::create([
             'name' => $request->name,

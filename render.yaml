@@ -31,9 +31,11 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_URL
-        value: https://kalapak-backend.onrender.com
+        value: https://chamraeun-space-back.onrender.com
       - key: FRONTEND_URL
-        value: https://kalapak-frontend.onrender.com
+        value: https://chamraeun-space.onrender.com
+      - key: RUN_MIGRATIONS
+        value: "1"
       - key: LOG_CHANNEL
         value: stderr
       - key: DB_CONNECTION
@@ -59,7 +61,7 @@ services:
           name: kalapak-db
           property: password
       - key: SANCTUM_STATEFUL_DOMAINS
-        value: kalapak-frontend.onrender.com
+        value: chamraeun-space.onrender.com
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_DRIVER
@@ -135,9 +137,9 @@ services:
     plan: free
     envVars:
       - key: NUXT_PUBLIC_API_URL
-        value: https://kalapak-backend.onrender.com/api
+        value: https://chamraeun-space-back.onrender.com/api
       - key: NUXT_PUBLIC_SITE_URL
-        value: https://kalapak-frontend.onrender.com
+        value: https://chamraeun-space.onrender.com
 
 # -------------------------------------------------
 # PostgreSQL Database
