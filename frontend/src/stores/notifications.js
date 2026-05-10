@@ -9,6 +9,8 @@ export const useNotificationStore = defineStore('notifications', () => {
   const meta = ref({ current_page: 1, last_page: 1, total: 0 })
 
   let pollInterval = null
+  /** How many layouts/components subscribed to polling (Navbar + AdminLayout both call startPolling). */
+  let pollConsumers = 0
 
   async function fetchNotifications(page = 1) {
     loading.value = true
@@ -68,20 +70,27 @@ export const useNotificationStore = defineStore('notifications', () => {
   }
 
   function startPolling() {
-    stopPolling()
-    fetchUnreadCount()
-    pollInterval = setInterval(fetchUnreadCount, 30000)
+    pollConsumers++
+    if (pollConsumers === 1) {
+      fetchUnreadCount()
+      pollInterval = setInterval(fetchUnreadCount, 60000)
+    }
   }
 
   function stopPolling() {
-    if (pollInterval) {
+    pollConsumers = Math.max(0, pollConsumers - 1)
+    if (pollConsumers === 0 && pollInterval) {
       clearInterval(pollInterval)
       pollInterval = null
     }
   }
 
   function $reset() {
-    stopPolling()
+    pollConsumers = 0
+    if (pollInterval) {
+      clearInterval(pollInterval)
+      pollInterval = null
+    }
     notifications.value = []
     unreadCount.value = 0
     meta.value = { current_page: 1, last_page: 1, total: 0 }
