@@ -15,6 +15,19 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
 {
+    /** When FRONTEND_URL is missing in prod, Redirect must still land on SPA (Render). Local uses localhost. */
+    private function frontendBaseUrl(): string
+    {
+        $fromEnv = env('FRONTEND_URL');
+        if (is_string($fromEnv) && $fromEnv !== '') {
+            return rtrim($fromEnv, '/');
+        }
+
+        return rtrim(env('APP_ENV') === 'local'
+            ? 'http://localhost:3000'
+            : 'https://chamraeun-space-frontend.onrender.com', '/');
+    }
+
     private function memberRole(): Role
     {
         return Role::firstOrCreate(
@@ -39,8 +52,7 @@ class SocialAuthController extends Controller
             Log::error('Google social login failed', [
                 'message' => $e->getMessage(),
             ]);
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
-            return redirect($frontendUrl . '/auth/login?error=google_auth_failed');
+            return redirect($this->frontendBaseUrl() . '/auth/login?error=google_auth_failed');
         }
 
         $user = User::where('google_id', $googleUser->getId())
@@ -70,9 +82,8 @@ class SocialAuthController extends Controller
         }
 
         $token = $user->createToken('auth-token')->plainTextToken;
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-        return redirect($frontendUrl . '/auth/google/callback?token=' . rawurlencode($token));
+        return redirect($this->frontendBaseUrl() . '/auth/google/callback?token=' . rawurlencode($token));
     }
 
     public function redirectToGithub(): RedirectResponse
@@ -88,8 +99,7 @@ class SocialAuthController extends Controller
             Log::error('GitHub social login failed', [
                 'message' => $e->getMessage(),
             ]);
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
-            return redirect($frontendUrl . '/auth/login?error=github_auth_failed');
+            return redirect($this->frontendBaseUrl() . '/auth/login?error=github_auth_failed');
         }
 
         $email = $githubUser->getEmail();
@@ -119,8 +129,7 @@ class SocialAuthController extends Controller
         }
 
         $token = $user->createToken('auth-token')->plainTextToken;
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-        return redirect($frontendUrl . '/auth/github/callback?token=' . rawurlencode($token));
+        return redirect($this->frontendBaseUrl() . '/auth/github/callback?token=' . rawurlencode($token));
     }
 }
