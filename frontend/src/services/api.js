@@ -61,6 +61,10 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  // Default instance sets Content-Type: application/json; FormData needs no type (browser sets multipart + boundary).
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
   return config
 })
 
@@ -124,10 +128,7 @@ export const memberApi = {
   updateProfile: (data) => api.put('/member/profile', data),
   updatePassword: (data) => api.put('/member/password', data),
   getStorageSettings: () => api.get('/member/storage-settings'),
-  uploadAvatar: (formData) =>
-    api.post('/member/avatar', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  uploadAvatar: (formData) => api.post('/member/avatar', formData),
   submitApplication: (data) => api.post('/applications', data),
 
   // Notifications
@@ -158,26 +159,14 @@ export const adminApi = {
 
   getProjects: (params) => api.get('/admin/projects', { params }),
   getProject: (id) => api.get(`/admin/projects/${id}`),
-  createProject: (formData) =>
-    api.post('/admin/projects', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  updateProject: (id, formData) =>
-    api.post(`/admin/projects/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  createProject: (formData) => api.post('/admin/projects', formData),
+  updateProject: (id, formData) => api.post(`/admin/projects/${id}`, formData),
   deleteProject: (id) => api.delete(`/admin/projects/${id}`),
 
   getBlogPosts: (params) => api.get('/admin/blog/posts', { params }),
   getBlogPost: (id) => api.get(`/admin/blog/posts/${id}`),
-  createBlogPost: (data) =>
-    api.post('/admin/blog/posts', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  updateBlogPost: (id, data) =>
-    api.post(`/admin/blog/posts/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  createBlogPost: (data) => api.post('/admin/blog/posts', data),
+  updateBlogPost: (id, data) => api.post(`/admin/blog/posts/${id}`, data),
   deleteBlogPost: (id) => api.delete(`/admin/blog/posts/${id}`),
   getBlogCategories: () => api.get('/admin/blog/categories'),
   createBlogCategory: (data) => api.post('/admin/blog/categories', data),
@@ -194,14 +183,8 @@ export const adminApi = {
   deleteMessage: (id) => api.delete(`/admin/messages/${id}`),
 
   getTeamMembers: (params) => api.get('/admin/team', { params }),
-  createTeamMember: (formData) =>
-    api.post('/admin/team', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  updateTeamMember: (id, formData) =>
-    api.post(`/admin/team/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  createTeamMember: (formData) => api.post('/admin/team', formData),
+  updateTeamMember: (id, formData) => api.post(`/admin/team/${id}`, formData),
   deleteTeamMember: (id) => api.delete(`/admin/team/${id}`),
 
   getRoles: () => api.get('/admin/roles'),
@@ -210,10 +193,7 @@ export const adminApi = {
   deleteRole: (id) => api.delete(`/admin/roles/${id}`),
 
   getMedia: (params) => api.get('/admin/media', { params }),
-  uploadMedia: (formData) =>
-    api.post('/admin/media/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  uploadMedia: (formData) => api.post('/admin/media/upload', formData),
   deleteMedia: (id) => api.delete(`/admin/media/${id}`),
 
   getSettings: () => api.get('/admin/settings'),
