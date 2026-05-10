@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'chamraeun-space.onrender.com')),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'chamraeun-space-frontend.onrender.com')),
 
     'guard' => ['web'],
 

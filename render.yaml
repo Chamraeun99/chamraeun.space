@@ -4,11 +4,10 @@
 # Deploy: Go to https://render.com → New → Blueprint
 # Connect your GitHub repo and Render will auto-detect this file.
 #
-# After first deploy, update these in the Render dashboard:
-#   Backend → APP_URL = https://kalapak-backend.onrender.com
-#   Backend → FRONTEND_URL = https://kalapak-frontend.onrender.com
-#   Backend → SANCTUM_STATEFUL_DOMAINS = kalapak-frontend.onrender.com
-#   Frontend → BACKEND_URL = https://kalapak-backend.onrender.com
+# After first deploy, confirm env vars (Blueprint sets defaults below):
+#   Backend → APP_URL = https://chamraeun-space-backend.onrender.com
+#   Backend → FRONTEND_URL = https://chamraeun-space-frontend.onrender.com
+#   Backend → SANCTUM_STATEFUL_DOMAINS = chamraeun-space-frontend.onrender.com
 # =====================================================
 
 services:
@@ -31,9 +30,9 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_URL
-        value: https://chamraeun-space-back.onrender.com
+        value: https://chamraeun-space-backend.onrender.com
       - key: FRONTEND_URL
-        value: https://chamraeun-space.onrender.com
+        value: https://chamraeun-space-frontend.onrender.com
       - key: RUN_MIGRATIONS
         value: "1"
       - key: LOG_CHANNEL
@@ -61,7 +60,7 @@ services:
           name: kalapak-db
           property: password
       - key: SANCTUM_STATEFUL_DOMAINS
-        value: chamraeun-space.onrender.com
+        value: chamraeun-space-frontend.onrender.com
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_DRIVER
@@ -137,9 +136,9 @@ services:
     plan: free
     envVars:
       - key: NUXT_PUBLIC_API_URL
-        value: https://chamraeun-space-back.onrender.com/api
+        value: https://chamraeun-space-backend.onrender.com/api
       - key: NUXT_PUBLIC_SITE_URL
-        value: https://chamraeun-space.onrender.com
+        value: https://chamraeun-space-frontend.onrender.com
       # Cloudflare Turnstile → Site key (must match backend TURNSTILE_SECRET_KEY pair). Add hostname in Turnstile dashboard.
       - key: NUXT_PUBLIC_TURNSTILE_SITE_KEY
         sync: false
