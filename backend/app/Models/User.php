@@ -57,6 +57,9 @@ class User extends Authenticatable
         return $this->hasMany(Comment::class);
     }
 
+    /**
+     * Media rows live on the Supabase DB connection; uploaded_by matches this user’s id (no cross-DB FK).
+     */
     public function media()
     {
         return $this->hasMany(Media::class, 'uploaded_by');

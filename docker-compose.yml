@@ -62,6 +62,7 @@ services:
       RUN_DB_SEED: "0"
       RUN_MIGRATIONS: "0"
       # Database: configure DB_* in backend/.env (use DB_HOST=postgres when using the postgres service above).
+      # Secondary Postgres (media metadata): DB_SUPABASE_* or DB_SUPABASE_URL in backend/.env → config/database.php connection `supabase`.
       CACHE_DRIVER: file
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: file

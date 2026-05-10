@@ -61,6 +61,27 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        /*
+        | Supabase PostgreSQL (secondary) — e.g. metadata for uploaded files (media table).
+        | Primary app data (users, blog, …) stays on the default connection (e.g. Neon).
+        | Set DB_SUPABASE_URL or DB_SUPABASE_HOST + credentials. Migrations run with
+        | php artisan migrate; the media-on-supabase migration uses Schema::connection('supabase').
+        */
+        'supabase' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_SUPABASE_URL'),
+            'host' => env('DB_SUPABASE_HOST'),
+            'port' => env('DB_SUPABASE_PORT', '5432'),
+            'database' => env('DB_SUPABASE_DATABASE', 'postgres'),
+            'username' => env('DB_SUPABASE_USERNAME', 'postgres'),
+            'password' => env('DB_SUPABASE_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => env('DB_SUPABASE_SCHEMA', 'public'),
+            'sslmode' => env('DB_SUPABASE_SSLMODE', 'require'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),

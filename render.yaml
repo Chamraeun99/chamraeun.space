@@ -124,6 +124,21 @@ services:
         sync: false
       - key: SUPABASE_REGION
         sync: false
+      # Supabase Postgres (media table). Optional if you keep media on Render Postgres only.
+      - key: DB_SUPABASE_URL
+        sync: false
+      - key: DB_SUPABASE_HOST
+        sync: false
+      - key: DB_SUPABASE_PORT
+        sync: false
+      - key: DB_SUPABASE_DATABASE
+        sync: false
+      - key: DB_SUPABASE_USERNAME
+        sync: false
+      - key: DB_SUPABASE_PASSWORD
+        sync: false
+      - key: DB_SUPABASE_SSLMODE
+        value: require
 
   # -------------------------------------------------
   # Frontend — Vue 3 + Nginx (production build)

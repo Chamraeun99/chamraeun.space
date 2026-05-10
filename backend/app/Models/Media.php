@@ -9,6 +9,9 @@ class Media extends Model
 {
     use HasFactory;
 
+    /** PostgreSQL on Supabase — file metadata; users remain on the default connection (e.g. Neon). */
+    protected $connection = 'supabase';
+
     protected $fillable = [
         'filename',
         'original_name',
