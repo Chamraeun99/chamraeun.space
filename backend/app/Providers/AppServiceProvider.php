@@ -37,9 +37,15 @@ class AppServiceProvider extends ServiceProvider
         BlogPost::observe(BlogPostObserver::class);
         Media::observe(MediaObserver::class);
 
-        // Override password reset URL to point to frontend
+        // Override password reset URL to point to frontend (use config, not env — works with config:cache)
         ResetPassword::createUrlUsing(function ($notifiable, string $token) {
-            $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/');
+            $configured = config('frontend.url', '');
+            $frontendUrl = (is_string($configured) && $configured !== '')
+                ? rtrim($configured, '/')
+                : rtrim(app()->environment('local')
+                    ? 'http://localhost:3000'
+                    : 'https://chamraeun-space-frontend.onrender.com', '/');
+
             return $frontendUrl . '/auth/reset-password/' . $token . '?email=' . urlencode($notifiable->getEmailForPasswordReset());
         });
 

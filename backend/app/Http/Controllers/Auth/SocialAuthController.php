@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -15,15 +13,17 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
 {
-    /** When FRONTEND_URL is missing in prod, Redirect must still land on SPA (Render). Local uses localhost. */
+    /**
+     * When FRONTEND_URL is missing, fall back safely. Uses config — not raw env — so redirects work after `php artisan config:cache`.
+     */
     private function frontendBaseUrl(): string
     {
-        $fromEnv = env('FRONTEND_URL');
-        if (is_string($fromEnv) && $fromEnv !== '') {
-            return rtrim($fromEnv, '/');
+        $configured = config('frontend.url', '');
+        if (is_string($configured) && $configured !== '') {
+            return rtrim($configured, '/');
         }
 
-        return rtrim(env('APP_ENV') === 'local'
+        return rtrim(app()->environment('local')
             ? 'http://localhost:3000'
             : 'https://chamraeun-space-frontend.onrender.com', '/');
     }
