@@ -123,7 +123,7 @@ services:
       - key: SUPABASE_ANON_KEY
         sync: false
       - key: SUPABASE_BUCKET
-        sync: false
+        value: chamraeun.space-picture
       - key: SUPABASE_REGION
         sync: false
       # Supabase Postgres (media table). Optional if you keep media on Render Postgres only.

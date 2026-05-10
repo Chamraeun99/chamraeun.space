@@ -3,12 +3,14 @@
 return [
 
     'supabase' => [
+        /** Project URL, e.g. https://YOUR_REF.supabase.co — used by SupabaseStorage (blog/projects/media/profile images). */
         'url' => env('SUPABASE_URL'),
-        /** Service role recommended for server uploads (Dashboard → Settings → API). */
+        /** Service role JWT for server uploads (Dashboard → Settings → API). */
         'secret_key' => env('SUPABASE_SECRET_KEY'),
-        /** Optional public anon key sent as `apikey` header; defaults to secret_key when empty. */
+        /** Optional anon key for REST `apikey` header; if empty, service key is reused. */
         'anon_key' => env('SUPABASE_ANON_KEY'),
-        'bucket' => env('SUPABASE_BUCKET', 'kalapak-assets'),
+        /** Storage bucket (Dashboard → Storage). Set SUPABASE_BUCKET in .env / Render to override. */
+        'bucket' => env('SUPABASE_BUCKET', 'chamraeun.space-picture'),
     ],
 
     'turnstile' => [

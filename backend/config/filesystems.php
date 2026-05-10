@@ -6,9 +6,6 @@ return [
     |--------------------------------------------------------------------------
     | Default Filesystem Disk
     |--------------------------------------------------------------------------
-    |
-    | បងត្រូវប្រាកដថា FILESYSTEM_DISK ក្នុង .env គឺដាក់ថា "supabase"
-    |
     */
 
     'default' => env('FILESYSTEM_DISK', 'local'),
@@ -41,13 +38,13 @@ return [
             'key' => env('SUPABASE_ACCESS_KEY'),
             'secret' => env('SUPABASE_SECRET_KEY'),
             'region' => env('SUPABASE_REGION', 'ap-southeast-1'),
-            'bucket' => env('SUPABASE_BUCKET', 'kalapak-assets'),
+            'bucket' => env('SUPABASE_BUCKET', 'chamraeun.space-picture'),
             'endpoint' => env('SUPABASE_ENDPOINT'),
             'use_path_style_endpoint' => true,
             'visibility' => 'public',
             'scheme' => 'https',
             'throw' => true,
-            'url' => env('SUPABASE_URL') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET', 'kalapak-assets'),
+            'url' => rtrim((string) env('SUPABASE_URL'), '/') . '/storage/v1/object/public/' . env('SUPABASE_BUCKET', 'chamraeun.space-picture'),
         ],
 
     ],
