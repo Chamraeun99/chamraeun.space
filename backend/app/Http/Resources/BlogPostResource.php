@@ -2,9 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Services\SupabaseStorage;
+use App\Support\AvatarUrlResolver;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Services\SupabaseStorage;
 
 class BlogPostResource extends JsonResource
 {
@@ -23,14 +24,10 @@ class BlogPostResource extends JsonResource
             'views_count' => $this->views_count,
             'reading_time' => $this->reading_time,
             'published_at' => $this->published_at?->toISOString(),
-            'author' => $this->whenLoaded('author', fn() => [
+            'author' => $this->whenLoaded('author', fn () => [
                 'id' => $this->author->id,
                 'name' => $this->author->name,
-                'avatar' => $this->author->avatar
-                    ? ($this->author->avatar_disk === 'cloudinary'
-                        ? (new \Cloudinary\Cloudinary(config('cloudinary.cloud_url')))->image($this->author->avatar)->toUrl()
-                        : app(SupabaseStorage::class)->url($this->author->avatar))
-                    : null,
+                'avatar' => AvatarUrlResolver::forUser($this->author),
                 'bio' => $this->author->bio,
             ]),
             'category' => $this->whenLoaded('category', fn() => [

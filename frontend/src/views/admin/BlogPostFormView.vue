@@ -263,6 +263,20 @@ function removeImage() {
   existingImage.value = null
 }
 
+function formatSaveError(err) {
+  const d = err.response?.data
+  if (d?.errors && typeof d.errors === 'object') {
+    const messages = []
+    for (const key of Object.keys(d.errors)) {
+      const vals = d.errors[key]
+      if (Array.isArray(vals)) messages.push(...vals)
+      else if (vals != null && vals !== '') messages.push(String(vals))
+    }
+    if (messages.length) return messages[0]
+  }
+  return d?.message || 'Failed to save'
+}
+
 onMounted(async () => {
   const neededAction = isEdit.value ? 'update' : 'create'
   if (!authStore.canDo('blog_posts', neededAction)) {
@@ -270,7 +284,13 @@ onMounted(async () => {
     router.replace({ name: 'admin-blog' })
     return
   }
-  try { const { data } = await adminApi.getBlogCategories(); categories.value = data.data || [] } catch {}
+  try {
+    const { data } = await adminApi.getBlogCategories()
+    categories.value = data.data || []
+    if (!isEdit.value && categories.value.length && (form.value.category_id === '' || form.value.category_id === null)) {
+      form.value.category_id = categories.value[0].id
+    }
+  } catch { /* categories empty until seeded */ }
 
   try {
     const { data } = await adminApi.getStorageSettings()
@@ -319,7 +339,7 @@ async function handleSubmit() {
       uiStore.showToast(e.response.data.message || 'Queued for approval', 'warning')
       router.push({ name: 'admin-blog' })
     } else {
-      error.value = e.response?.data?.message || 'Failed to save'
+      error.value = formatSaveError(e)
     }
   } finally { saving.value = false }
 }
