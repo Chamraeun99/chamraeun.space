@@ -238,7 +238,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+const turnstileSiteKey = useTurnstileSiteKey()
 const turnstileToken = ref('')
 
 function loginWithGoogle() {

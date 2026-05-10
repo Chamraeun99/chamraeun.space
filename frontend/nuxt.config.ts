@@ -39,6 +39,9 @@ export default defineNuxtConfig({
       // Prefer explicit env; in local dev fall back to Laravel directly to avoid /api 404 when proxy/env is missing.
       apiUrl: process.env.NUXT_PUBLIC_API_URL || process.env.VITE_API_URL || (isDev ? 'http://127.0.0.1:8000/api' : '/api'),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://kalapak.com",
+      /** Must match Cloudflare Turnstile widget; add production hostname in Cloudflare (e.g. *.onrender.com). */
+      turnstileSiteKey:
+        process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.VITE_TURNSTILE_SITE_KEY || '',
     },
   },
   // Local dev: keep frontend requests at /api and forward them to Laravel.

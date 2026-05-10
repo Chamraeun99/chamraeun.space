@@ -140,6 +140,9 @@ services:
         value: https://chamraeun-space-back.onrender.com/api
       - key: NUXT_PUBLIC_SITE_URL
         value: https://chamraeun-space.onrender.com
+      # Cloudflare Turnstile → Site key (must match backend TURNSTILE_SECRET_KEY pair). Add hostname in Turnstile dashboard.
+      - key: NUXT_PUBLIC_TURNSTILE_SITE_KEY
+        sync: false
 
 # -------------------------------------------------
 # PostgreSQL Database

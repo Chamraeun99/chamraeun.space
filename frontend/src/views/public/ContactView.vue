@@ -211,7 +211,7 @@ import VueTurnstile from 'vue-turnstile'
 const form = reactive({ name: '', email: '', subject: '', message: '' })
 const submitting = ref(false)
 const submitted = ref(false)
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+const turnstileSiteKey = useTurnstileSiteKey()
 const turnstileToken = ref('')
 const error = ref('')
 

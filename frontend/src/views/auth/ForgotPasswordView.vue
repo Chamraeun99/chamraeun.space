@@ -45,7 +45,7 @@ const email = ref('')
 const loading = ref(false)
 const sent = ref(false)
 const error = ref('')
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+const turnstileSiteKey = useTurnstileSiteKey()
 const turnstileToken = ref('')
 
 async function handleSubmit() {

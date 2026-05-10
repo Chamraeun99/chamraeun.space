@@ -168,7 +168,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()
 
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+const turnstileSiteKey = useTurnstileSiteKey()
 const turnstileToken = ref('')
 const form = ref({ email: '', password: '', remember: false })
 const error = ref('')

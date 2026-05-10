@@ -380,7 +380,7 @@ const submitting = ref(false)
 const submitted = ref(false)
 const error = ref('')
 const openFaq = ref(null)
-const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+const turnstileSiteKey = useTurnstileSiteKey()
 const turnstileToken = ref('')
 
 const form = reactive({
