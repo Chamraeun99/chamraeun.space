@@ -46,6 +46,9 @@ if [ "${RUN_MIGRATIONS}" = "1" ] || [ "${RUN_MIGRATIONS}" = "true" ]; then
     fi
 else
     echo "==> [DB] Skipping migrations (set RUN_MIGRATIONS=1 to enable on startup)."
+    if [ "${APP_ENV}" = "production" ]; then
+        echo "==> [DB] Hint: In Render → your web service → Environment, add RUN_MIGRATIONS=1 (or run once: php artisan migrate --force)."
+    fi
 fi
 
 # Optional local seed (enabled in docker-compose via RUN_DB_SEED=1).
