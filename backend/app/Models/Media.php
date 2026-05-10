@@ -9,8 +9,25 @@ class Media extends Model
 {
     use HasFactory;
 
-    /** PostgreSQL on Supabase — file metadata; users remain on the default connection (e.g. Neon). */
-    protected $connection = 'supabase';
+    /**
+     * Use Supabase Postgres when DB_SUPABASE_* is set; otherwise the default connection (e.g. Neon)
+     * so admin media does not 500 with “connection refused” and break CORS on uncaught errors.
+     */
+    public function getConnectionName(): ?string
+    {
+        return self::resolveMediaConnection();
+    }
+
+    public static function resolveMediaConnection(): ?string
+    {
+        $c = config('database.connections.supabase');
+
+        if (! empty($c['url']) || ! empty($c['host'])) {
+            return 'supabase';
+        }
+
+        return config('database.default');
+    }
 
     protected $fillable = [
         'filename',
