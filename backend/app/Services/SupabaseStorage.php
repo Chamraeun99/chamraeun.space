@@ -8,14 +8,34 @@ use Illuminate\Support\Facades\Http;
 class SupabaseStorage
 {
     protected string $url;
+
     protected string $key;
+
     protected string $bucket;
+
+    /** Optional; REST gateway often expects `apikey` + `Authorization` (use service role server-side). */
+    protected ?string $anonKey;
 
     public function __construct()
     {
-        $this->url = rtrim(config('services.supabase.url'), '/');
-        $this->key = config('services.supabase.secret_key');
-        $this->bucket = config('services.supabase.bucket');
+        $this->url = rtrim((string) config('services.supabase.url'), '/');
+        $this->key = (string) config('services.supabase.secret_key');
+        $this->bucket = (string) config('services.supabase.bucket');
+        $anon = config('services.supabase.anon_key');
+        $this->anonKey = is_string($anon) && $anon !== '' ? $anon : null;
+    }
+
+    /**
+     * Headers Supabase Kong expects for Storage REST calls.
+     */
+    protected function storageHeaders(array $extra = []): array
+    {
+        $apikey = $this->anonKey ?? $this->key;
+
+        return array_merge([
+            'Authorization' => 'Bearer ' . $this->key,
+            'apikey' => $apikey,
+        ], $extra);
     }
 
     /**
@@ -23,24 +43,39 @@ class SupabaseStorage
      */
     public function upload(UploadedFile $file, string $folder = ''): string|false
     {
-        $filename = $folder . '/' . uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $filename = ltrim($filename, '/');
+        $ext = strtolower((string) $file->getClientOriginalExtension());
+        if ($ext === '') {
+            $ext = strtolower((string) ($file->guessExtension() ?: 'bin'));
+        }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->key,
-            'Content-Type' => $file->getMimeType(),
-            'x-upsert' => 'true',
-        ])->withBody(
-                file_get_contents($file->getRealPath()),
-                $file->getMimeType()
-            )->post("{$this->url}/storage/v1/object/{$this->bucket}/{$filename}");
+        $filename = $folder . '/' . uniqid() . '_' . time() . '.' . $ext;
+        $filename = ltrim(str_replace('\\', '/', $filename), '/');
+        $encodedKey = implode('/', array_map('rawurlencode', explode('/', $filename)));
+
+        $mime = $file->getMimeType() ?: 'application/octet-stream';
+        $path = $file->getRealPath() ?: $file->getPathname();
+        $binary = file_get_contents($path);
+        if ($binary === false) {
+            throw new \RuntimeException('Could not read uploaded file.');
+        }
+
+        $response = Http::timeout(120)
+            ->withHeaders($this->storageHeaders([
+                'Content-Type' => $mime,
+                'x-upsert' => 'true',
+            ]))
+            ->withBody($binary, $mime)
+            ->post("{$this->url}/storage/v1/object/{$this->bucket}/{$encodedKey}");
 
         if ($response->successful()) {
             return $filename;
         }
 
         throw new \RuntimeException(
-            'Supabase upload failed: ' . $response->body()
+            'Supabase storage upload failed (HTTP '
+            . $response->status() . '). '
+            . 'Use SUPABASE_SECRET_KEY = service_role key; bucket must exist and allow uploads. Body: '
+            . $response->body()
         );
     }
 
@@ -49,11 +84,14 @@ class SupabaseStorage
      */
     public function delete(string $path): bool
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->key,
-        ])->delete("{$this->url}/storage/v1/object/{$this->bucket}", [
-                    'prefixes' => [$path],
-                ]);
+        $path = str_replace('\\', '/', ltrim($path, '/'));
+        $path = implode('/', array_map('rawurlencode', explode('/', $path)));
+
+        $response = Http::timeout(30)
+            ->withHeaders($this->storageHeaders([
+                'Content-Type' => 'application/json',
+            ]))
+            ->delete("{$this->url}/storage/v1/object/{$this->bucket}/{$path}");
 
         return $response->successful();
     }
@@ -111,11 +149,12 @@ class SupabaseStorage
 
         try {
             $testPath = '_test_' . time() . '.txt';
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->key,
-                'Content-Type' => 'text/plain',
-                'x-upsert' => 'true',
-            ])->withBody('test', 'text/plain')
+            $response = Http::timeout(30)
+                ->withHeaders($this->storageHeaders([
+                    'Content-Type' => 'text/plain',
+                    'x-upsert' => 'true',
+                ]))
+                ->withBody('test', 'text/plain')
                 ->post("{$this->url}/storage/v1/object/{$this->bucket}/{$testPath}");
 
             if ($response->successful()) {

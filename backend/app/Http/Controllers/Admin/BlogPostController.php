@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\HandlesSupabaseCoverUploads;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BlogPostRequest;
 use App\Http\Resources\BlogPostResource;
@@ -15,6 +16,8 @@ use Illuminate\Http\Request;
 
 class BlogPostController extends Controller
 {
+    use HandlesSupabaseCoverUploads;
+
     public function index(Request $request): JsonResponse
     {
         $query = BlogPost::with(['author', 'category']);
@@ -58,8 +61,23 @@ class BlogPostController extends Controller
 
         if ($request->hasFile('cover_image')) {
             $provider = $request->input('storage_provider', 'supabase');
-            $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
-            $data['storage_provider'] = $provider;
+
+            $uploadError = $this->validateCoverStorageOrFail($provider);
+            if ($uploadError instanceof JsonResponse) {
+                return $uploadError;
+            }
+
+            try {
+                $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
+                $data['storage_provider'] = $provider;
+            } catch (\Throwable $e) {
+                report($e);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Cover image upload failed.',
+                ], 422);
+            }
         }
 
         if ($data['status'] === 'published' && empty($data['published_at'])) {
@@ -102,8 +120,23 @@ class BlogPostController extends Controller
             $this->deleteCoverImage($post->cover_image, $post->storage_provider);
 
             $provider = $request->input('storage_provider', 'supabase');
-            $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
-            $data['storage_provider'] = $provider;
+
+            $uploadError = $this->validateCoverStorageOrFail($provider);
+            if ($uploadError instanceof JsonResponse) {
+                return $uploadError;
+            }
+
+            try {
+                $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
+                $data['storage_provider'] = $provider;
+            } catch (\Throwable $e) {
+                report($e);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Cover image upload failed.',
+                ], 422);
+            }
         }
 
         if ($data['status'] === 'published' && !$post->published_at && empty($data['published_at'])) {

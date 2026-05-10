@@ -4,7 +4,10 @@ return [
 
     'supabase' => [
         'url' => env('SUPABASE_URL'),
+        /** Service role recommended for server uploads (Dashboard → Settings → API). */
         'secret_key' => env('SUPABASE_SECRET_KEY'),
+        /** Optional public anon key sent as `apikey` header; defaults to secret_key when empty. */
+        'anon_key' => env('SUPABASE_ANON_KEY'),
         'bucket' => env('SUPABASE_BUCKET', 'kalapak-assets'),
     ],
 

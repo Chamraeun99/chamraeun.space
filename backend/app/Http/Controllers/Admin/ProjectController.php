@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\HandlesSupabaseCoverUploads;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\ProjectResource;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
+    use HandlesSupabaseCoverUploads;
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -51,8 +54,21 @@ class ProjectController extends Controller
 
         if ($request->hasFile('cover_image')) {
             $provider = $request->input('storage_provider', 'supabase');
-            $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
-            $data['storage_provider'] = $provider;
+            $err = $this->validateCoverStorageOrFail($provider);
+            if ($err) {
+                return $err;
+            }
+            try {
+                $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
+                $data['storage_provider'] = $provider;
+            } catch (\Throwable $e) {
+                report($e);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Cover image upload failed.',
+                ], 422);
+            }
         }
 
         $data['created_by'] = auth()->id();
@@ -91,8 +107,21 @@ class ProjectController extends Controller
         if ($request->hasFile('cover_image')) {
             $this->deleteCoverImage($project->cover_image, $project->storage_provider ?? 'supabase');
             $provider = $request->input('storage_provider', 'supabase');
-            $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
-            $data['storage_provider'] = $provider;
+            $err = $this->validateCoverStorageOrFail($provider);
+            if ($err) {
+                return $err;
+            }
+            try {
+                $data['cover_image'] = $this->uploadCoverImage($request->file('cover_image'), $provider);
+                $data['storage_provider'] = $provider;
+            } catch (\Throwable $e) {
+                report($e);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Cover image upload failed.',
+                ], 422);
+            }
         }
 
         $tags = $data['tags'] ?? [];
