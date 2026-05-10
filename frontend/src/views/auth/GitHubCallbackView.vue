@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const route = useRoute()
+const runtimeConfig = useRuntimeConfig()
 const authStore = useAuthStore()
 const message = ref('Signing you in...')
 
@@ -36,7 +37,10 @@ onMounted(async () => {
   if (token) {
     localStorage.setItem('auth_token', token)
     authStore.token = token
-    await authStore.fetchMe()
+    const oauthBase = String(runtimeConfig.public.oauthApiBase || '').trim()
+    await authStore.fetchMe(
+      oauthBase ? { oauthDirectBackendBase: oauthBase } : {}
+    )
     if (!authStore.user) {
       message.value = 'Could not complete sign-in. Redirecting...'
       setTimeout(() => router.push({ name: 'login', query: { error: 'github_session' } }), 2000)

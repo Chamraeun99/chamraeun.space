@@ -158,7 +158,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getOAuthRedirectUrl } from '@/services/api'
@@ -174,6 +174,23 @@ const turnstileToken = ref('')
 const form = ref({ email: '', password: '', remember: false })
 const error = ref('')
 const showPassword = ref(false)
+
+const oauthReturnErrors = {
+  github_session:
+    'GitHub sign-in did not finish loading your account. Please try GitHub again or sign in with email.',
+  google_session:
+    'Google sign-in did not finish loading your account. Please try Google again or sign in with email.',
+  github_failed: 'GitHub sign-in was cancelled or failed.',
+  google_failed: 'Google sign-in was cancelled or failed.',
+}
+
+onMounted(() => {
+  const q = route.query.error
+  const key = Array.isArray(q) ? q[0] : q
+  if (typeof key === 'string' && oauthReturnErrors[key]) {
+    error.value = oauthReturnErrors[key]
+  }
+})
 
 function loginWithGoogle() {
   window.location.href = getOAuthRedirectUrl('google')

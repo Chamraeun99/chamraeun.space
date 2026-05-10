@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import axios from 'axios'
 import { authApi, memberApi, adminApi } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -67,12 +68,33 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function fetchMe() {
+  /**
+   * @param {{ oauthDirectBackendBase?: string }} [opts]
+   * After OAuth, call with `oauthDirectBackendBase` from `useRuntimeConfig().public.oauthApiBase` so `/auth/me`
+   * hits Laravel directly. The Nitro `/api` proxy can omit `Authorization`, which caused `?error=github_session`.
+   */
+  async function fetchMe(opts = {}) {
     if (!token.value) return
     loading.value = true
     try {
-      const { data } = await authApi.me()
-      user.value = data.data
+      const direct = typeof opts.oauthDirectBackendBase === 'string'
+        ? opts.oauthDirectBackendBase.replace(/\/$/, '')
+        : ''
+      let userPayload
+      if (import.meta.client && direct.startsWith('http')) {
+        const { data } = await axios.get(`${direct}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token.value}`,
+            Accept: 'application/json',
+          },
+          withCredentials: false,
+        })
+        userPayload = data.data
+      } else {
+        const { data } = await authApi.me()
+        userPayload = data.data
+      }
+      user.value = userPayload
       await fetchPermissions()
     } catch {
       logout()
