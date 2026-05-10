@@ -62,12 +62,13 @@ services:
       RUN_DB_SEED: "0"
       RUN_MIGRATIONS: "0"
       DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: "5432"
-      DB_DATABASE: kalapak_db
-      DB_USERNAME: kalapak_user
-      DB_PASSWORD: kalapak_secret
-      DB_SSLMODE: prefer
+      # Override via a gitignored `.env` next to this file or `backend/.env` (remote DB, etc.).
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-kalapak_db}
+      DB_USERNAME: ${DB_USERNAME:-kalapak_user}
+      DB_PASSWORD: ${DB_PASSWORD:-kalapak_secret}
+      DB_SSLMODE: ${DB_SSLMODE:-prefer}
       CACHE_DRIVER: file
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: file
