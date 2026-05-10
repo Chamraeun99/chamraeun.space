@@ -32,6 +32,12 @@ function resolveApiBaseURL() {
   )
 }
 
+/** Full-page OAuth entry points live under /api/auth/… so proxies that only route /api/* still reach Laravel. */
+export function getOAuthRedirectUrl(provider) {
+  const base = resolveApiBaseURL().replace(/\/$/, '')
+  return `${base}/auth/${provider}/redirect`
+}
+
 const api = axios.create({
   baseURL: resolveApiBaseURL(),
   headers: {

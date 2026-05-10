@@ -161,12 +161,12 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { getOAuthRedirectUrl } from '@/services/api'
 import VueTurnstile from 'vue-turnstile'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const config = useRuntimeConfig()
 
 const turnstileSiteKey = useTurnstileSiteKey()
 const turnstileToken = ref('')
@@ -175,13 +175,11 @@ const error = ref('')
 const showPassword = ref(false)
 
 function loginWithGoogle() {
-  const backendUrl = (config.public.apiUrl || 'http://127.0.0.1:8000/api').replace(/\/api\/?$/, '')
-  window.location.href = `${backendUrl}/auth/google/redirect`
+  window.location.href = getOAuthRedirectUrl('google')
 }
 
 function loginWithGithub() {
-  const backendUrl = (config.public.apiUrl || 'http://127.0.0.1:8000/api').replace(/\/api\/?$/, '')
-  window.location.href = `${backendUrl}/auth/github/redirect`
+  window.location.href = getOAuthRedirectUrl('github')
 }
 
 async function handleLogin() {

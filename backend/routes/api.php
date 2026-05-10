@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\PublicApi\BlogController;
 use App\Http\Controllers\PublicApi\ContactController;
 use App\Http\Controllers\PublicApi\HomeController;
@@ -42,6 +43,11 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [RegisterController::class, 'register']);
     Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword'])->middleware('turnstile');
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+    // Browser OAuth (same path prefix as JSON auth so hosts that only expose /api/* still work)
+    Route::get('/google/redirect', [SocialAuthController::class, 'redirectToGoogle']);
+    Route::get('/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+    Route::get('/github/redirect', [SocialAuthController::class, 'redirectToGithub']);
+    Route::get('/github/callback', [SocialAuthController::class, 'handleGithubCallback']);
 });
 
 // Projects
