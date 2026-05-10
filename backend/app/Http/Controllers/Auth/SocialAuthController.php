@@ -72,7 +72,7 @@ class SocialAuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-        return redirect($frontendUrl . '/auth/google/callback?token=' . $token);
+        return redirect($frontendUrl . '/auth/google/callback?token=' . rawurlencode($token));
     }
 
     public function redirectToGithub(): RedirectResponse
@@ -121,6 +121,6 @@ class SocialAuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-        return redirect($frontendUrl . '/auth/github/callback?token=' . $token);
+        return redirect($frontendUrl . '/auth/github/callback?token=' . rawurlencode($token));
     }
 }

@@ -17,11 +17,17 @@ const route = useRoute()
 const authStore = useAuthStore()
 const message = ref('Signing you in...')
 
-onMounted(async () => {
-  const token = route.query.token
-  const error = route.query.error
+function queryString(val) {
+  if (val == null) return ''
+  const s = Array.isArray(val) ? val[0] : val
+  return typeof s === 'string' ? s : ''
+}
 
-  if (error) {
+onMounted(async () => {
+  const token = queryString(route.query.token)
+  const err = queryString(route.query.error)
+
+  if (err) {
     message.value = 'Google sign-in failed. Redirecting...'
     setTimeout(() => router.push({ name: 'login', query: { error: 'google_failed' } }), 2000)
     return
@@ -31,6 +37,11 @@ onMounted(async () => {
     localStorage.setItem('auth_token', token)
     authStore.token = token
     await authStore.fetchMe()
+    if (!authStore.user) {
+      message.value = 'Could not complete sign-in. Redirecting...'
+      setTimeout(() => router.push({ name: 'login', query: { error: 'google_session' } }), 2000)
+      return
+    }
     const redirect = authStore.isAdmin ? '/admin' : '/'
     router.push(redirect)
   } else {

@@ -35,8 +35,8 @@ const routes = [
         component: () => import('@/views/auth/ResetPasswordView.vue'),
         meta: { guestOnly: false },
       },
-      { path: 'google/callback', name: 'google-callback', component: () => import('@/views/auth/GoogleCallbackView.vue') },
-      { path: 'github/callback', name: 'github-callback', component: () => import('@/views/auth/GitHubCallbackView.vue') },
+      { path: 'google/callback', name: 'google-callback', component: () => import('@/views/auth/GoogleCallbackView.vue'), meta: { guestOnly: false } },
+      { path: 'github/callback', name: 'github-callback', component: () => import('@/views/auth/GitHubCallbackView.vue'), meta: { guestOnly: false } },
     ],
   },
   // Member
@@ -103,8 +103,10 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Fetch user if token exists but user not loaded
-  if (authStore.token && !authStore.user) {
+  const isOAuthCallback = to.name === 'github-callback' || to.name === 'google-callback'
+
+  // Avoid prefetch with stale token before OAuth callback reads ?token from the URL
+  if (!isOAuthCallback && authStore.token && !authStore.user) {
     await authStore.fetchMe()
   }
 
@@ -120,7 +122,7 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'admin-dashboard' })
   }
 
-  if (to.meta.guestOnly && authStore.isAuthenticated) {
+  if (to.meta.guestOnly && authStore.isAuthenticated && !isOAuthCallback) {
     return next({ name: 'home' })
   }
 

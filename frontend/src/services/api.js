@@ -65,7 +65,11 @@ api.interceptors.response.use(
       const authStore = useAuthStore()
       authStore.logout()
       if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login'
+        const path = window.location.pathname || ''
+        const onOAuthCallback = /\/auth\/(?:google|github)\/callback$/.test(path)
+        if (!onOAuthCallback) {
+          window.location.href = '/auth/login'
+        }
       }
     }
     if (error.response?.status === 429) {

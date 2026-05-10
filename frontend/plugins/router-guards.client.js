@@ -6,7 +6,12 @@ export default defineNuxtPlugin((nuxtApp) => {
   router.beforeEach(async (to) => {
     const authStore = useAuthStore();
 
-    if (authStore.token && !authStore.user) {
+    // OAuth return URLs carry ?token=… — must not run prefetch fetchMe with a stale
+    // localStorage token first (401 → axios redirects to login before the callback applies the new token).
+    const isOAuthCallback =
+      to.name === "github-callback" || to.name === "google-callback";
+
+    if (!isOAuthCallback && authStore.token && !authStore.user) {
       await authStore.fetchMe();
     }
 
@@ -22,7 +27,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       return { name: "admin-dashboard" };
     }
 
-    if (to.meta.guestOnly && authStore.isAuthenticated) {
+    if (to.meta.guestOnly && authStore.isAuthenticated && !isOAuthCallback) {
       return { name: "home" };
     }
 

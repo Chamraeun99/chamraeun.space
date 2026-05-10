@@ -38,8 +38,18 @@ export default <RouterConfig>{
           component: () => import("@/views/auth/ResetPasswordView.vue"),
           meta: { guestOnly: false },
         },
-        { path: "google/callback", name: "google-callback", component: () => import("@/views/auth/GoogleCallbackView.vue") },
-        { path: "github/callback", name: "github-callback", component: () => import("@/views/auth/GitHubCallbackView.vue") },
+        {
+          path: "google/callback",
+          name: "google-callback",
+          component: () => import("@/views/auth/GoogleCallbackView.vue"),
+          meta: { guestOnly: false },
+        },
+        {
+          path: "github/callback",
+          name: "github-callback",
+          component: () => import("@/views/auth/GitHubCallbackView.vue"),
+          meta: { guestOnly: false },
+        },
       ],
     },
     {
