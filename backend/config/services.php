@@ -7,10 +7,16 @@ return [
         'url' => env('SUPABASE_URL'),
         /** Service role JWT for server uploads (Dashboard → Settings → API). */
         'secret_key' => env('SUPABASE_SECRET_KEY'),
-        /** Optional anon key for REST `apikey` header; if empty, service key is reused. */
+        /** Public anon JWT — send as `apikey` on Storage REST (avoids gateway “signature verification failed” vs using service_role for both). */
         'anon_key' => env('SUPABASE_ANON_KEY'),
         /** Storage bucket (Dashboard → Storage). Set SUPABASE_BUCKET in .env / Render to override. */
         'bucket' => env('SUPABASE_BUCKET', 'chamraeun.space-picture'),
+        /**
+         * Storage REST gateway headers:
+         * - anon_authorization — apikey=anon JWT, Authorization=Bearer service_role (recommended)
+         * - service_both — both headers use service_role JWT (fallback if anon path fails)
+         */
+        'storage_gateway' => env('SUPABASE_STORAGE_GATEWAY', 'anon_authorization'),
     ],
 
     'turnstile' => [

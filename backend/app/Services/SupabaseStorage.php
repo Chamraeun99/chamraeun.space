@@ -18,22 +18,34 @@ class SupabaseStorage
 
     public function __construct()
     {
-        $this->url = rtrim((string) config('services.supabase.url'), '/');
-        $this->key = (string) config('services.supabase.secret_key');
-        $this->bucket = (string) config('services.supabase.bucket');
+        $this->url = rtrim(trim((string) config('services.supabase.url')), '/');
+        $this->key = trim((string) config('services.supabase.secret_key'));
+        $this->bucket = trim((string) config('services.supabase.bucket'));
         $anon = config('services.supabase.anon_key');
-        $this->anonKey = is_string($anon) && $anon !== '' ? $anon : null;
+        $anonTrimmed = is_string($anon) ? trim($anon) : '';
+        $this->anonKey = $anonTrimmed !== '' ? $anonTrimmed : null;
     }
 
     /**
-     * Headers Supabase Kong expects for Storage REST calls.
+     * Headers Supabase Storage REST expects (see config services.supabase.storage_gateway).
      */
     protected function storageHeaders(array $extra = []): array
     {
-        $apikey = $this->anonKey ?? $this->key;
+        $gateway = config('services.supabase.storage_gateway', 'anon_authorization');
+
+        $serviceJwt = $this->key;
+
+        // Default: anon in apikey + service JWT in Authorization (fixes many “signature verification failed” responses).
+        if ($gateway === 'service_both') {
+            $apikey = $serviceJwt;
+            $bearer = $serviceJwt;
+        } else {
+            $apikey = $this->anonKey ?? $serviceJwt;
+            $bearer = $serviceJwt;
+        }
 
         return array_merge([
-            'Authorization' => 'Bearer ' . $this->key,
+            'Authorization' => 'Bearer ' . $bearer,
             'apikey' => $apikey,
         ], $extra);
     }
@@ -71,10 +83,14 @@ class SupabaseStorage
             return $filename;
         }
 
+        $gatewayHint = (config('services.supabase.storage_gateway') ?? 'anon_authorization') === 'anon_authorization'
+            ? 'Set SUPABASE_ANON_KEY (public anon JWT) and SUPABASE_SECRET_KEY (service_role JWT) from the same project as SUPABASE_URL. If uploads still fail, set SUPABASE_STORAGE_GATEWAY=service_both.'
+            : 'Set SUPABASE_SECRET_KEY to the full service_role JWT from Supabase Dashboard → Settings → API. Same project ref as SUPABASE_URL. Try SUPABASE_STORAGE_GATEWAY=anon_authorization with SUPABASE_ANON_KEY set.';
+
         throw new \RuntimeException(
             'Supabase storage upload failed (HTTP '
-            . $response->status() . '). '
-            . 'Use SUPABASE_SECRET_KEY = service_role key; bucket must exist and allow uploads. Body: '
+            . $response->status() . "). {$gatewayHint} Trim any quotes/newlines from env vars. Bucket must exist ("
+            . $this->bucket . '). Response: '
             . $response->body()
         );
     }
