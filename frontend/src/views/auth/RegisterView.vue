@@ -150,8 +150,8 @@
         </label>
       </div>
 
-      <!-- Turnstile CAPTCHA -->
-      <div class="flex justify-center">
+      <!-- Turnstile CAPTCHA (omit when no site key to avoid console errors) -->
+      <div v-if="turnstileSiteKey" class="flex justify-center">
         <VueTurnstile :site-key="turnstileSiteKey" v-model="turnstileToken" theme="dark" />
       </div>
 

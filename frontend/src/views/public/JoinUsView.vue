@@ -314,7 +314,10 @@
 
             <!-- Navigation buttons -->
             <div v-if="currentStep === 3" class="flex justify-center pt-2">
-              <VueTurnstile :site-key="turnstileSiteKey" v-model="turnstileToken" />
+              <VueTurnstile v-if="turnstileSiteKey" :site-key="turnstileSiteKey" v-model="turnstileToken" />
+              <p v-else class="text-xs text-center text-amber-600 dark:text-amber-400 max-w-md">
+                Bot protection is not configured. Set NUXT_PUBLIC_TURNSTILE_SITE_KEY to submit an application.
+              </p>
             </div>
             <div class="flex items-center gap-4 pt-2">
               <button v-if="currentStep > 1" type="button" @click="currentStep--"
@@ -326,7 +329,7 @@
                 class="px-6 py-3 rounded-xl text-sm font-semibold bg-gradient-brand text-white hover:shadow-glow transition-all duration-300 hover:-translate-y-0.5">
                 Continue
               </button>
-              <button v-else type="submit" :disabled="submitting"
+              <button v-else type="submit" :disabled="submitting || (turnstileSiteKey ? !turnstileToken : true)"
                 class="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold bg-gradient-brand text-white hover:shadow-glow transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none">
                 <svg v-if="!submitting" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
                 <div v-else class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

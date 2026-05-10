@@ -79,8 +79,8 @@
         </router-link>
       </div>
 
-      <!-- Turnstile CAPTCHA -->
-      <div class="flex justify-center">
+      <!-- Turnstile CAPTCHA (omit widget when no site key — avoids Cloudflare "sitekey" "" errors) -->
+      <div v-if="turnstileSiteKey" class="flex justify-center">
         <VueTurnstile :site-key="turnstileSiteKey" v-model="turnstileToken" theme="dark" />
       </div>
 

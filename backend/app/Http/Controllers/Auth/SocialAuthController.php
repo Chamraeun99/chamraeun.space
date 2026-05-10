@@ -69,14 +69,14 @@ class SocialAuthController extends Controller
                 $user->update(['avatar' => $googleUser->getAvatar()]);
             }
         } else {
-            // Create new user
+            // Create new user (opaque password matches GitHub path; avoids NOT NULL DB errors if migrations lag)
             $memberRole = $this->memberRole();
             $user = User::create([
                 'name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
                 'google_id' => $googleUser->getId(),
                 'avatar' => $googleUser->getAvatar(),
-                'password' => null,
+                'password' => Hash::make(Str::random(40)),
                 'role_id' => $memberRole->id,
             ]);
         }
@@ -88,13 +88,16 @@ class SocialAuthController extends Controller
 
     public function redirectToGithub(): RedirectResponse
     {
-        return Socialite::driver('github')->stateless()->redirect();
+        return Socialite::driver('github')
+            ->scopes(['user:email'])
+            ->stateless()
+            ->redirect();
     }
 
     public function handleGithubCallback(): RedirectResponse
     {
         try {
-            $githubUser = Socialite::driver('github')->stateless()->user();
+            $githubUser = Socialite::driver('github')->scopes(['user:email'])->stateless()->user();
         } catch (\Exception $e) {
             Log::error('GitHub social login failed', [
                 'message' => $e->getMessage(),

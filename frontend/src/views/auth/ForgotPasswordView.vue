@@ -17,14 +17,21 @@
         <label class="block text-sm font-medium dark:text-gray-300 mb-1">Email</label>
         <input v-model="email" type="email" required class="input-field" placeholder="your@email.com" />
       </div>
-      <div class="flex justify-center">
+      <div v-if="turnstileSiteKey" class="flex justify-center">
         <VueTurnstile :site-key="turnstileSiteKey" v-model="turnstileToken" theme="dark" />
       </div>
-      <button type="submit" :disabled="loading" class="btn-primary w-full">
+      <p v-else class="text-xs text-center text-amber-500 dark:text-amber-400">
+        Turnstile is not configured (missing <code class="text-xs">NUXT_PUBLIC_TURNSTILE_SITE_KEY</code>). Password reset cannot be verified until it is set.
+      </p>
+      <button
+        type="submit"
+        :disabled="loading || (turnstileSiteKey ? !turnstileToken : true)"
+        class="btn-primary w-full"
+      >
         <span v-if="loading">Sending...</span>
         <span v-else>Send Reset Link</span>
       </button>
-      <p v-if="!turnstileToken" class="text-xs text-center text-gray-400">Waiting for CAPTCHA verification…</p>
+      <p v-if="turnstileSiteKey && !turnstileToken" class="text-xs text-center text-gray-400">Waiting for CAPTCHA verification…</p>
       <p v-if="error" class="text-sm text-red-500 text-center">{{ error }}</p>
     </form>
 
