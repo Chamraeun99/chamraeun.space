@@ -18,14 +18,10 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
 # Stage 3: Build (production bundle)
 # ===========================================
 FROM base AS build
-# Render / CI: set these so the client bundle contains the correct Turnstile site key and API URLs.
-# Falls back to .env.production in the repo when args are unset.
+# Render may pass build-args; do not ENV empty values or they override .env.production during build.
 ARG NUXT_PUBLIC_TURNSTILE_SITE_KEY
 ARG NUXT_PUBLIC_API_URL
 ARG NUXT_PUBLIC_SITE_URL
-ENV NUXT_PUBLIC_TURNSTILE_SITE_KEY=$NUXT_PUBLIC_TURNSTILE_SITE_KEY
-ENV NUXT_PUBLIC_API_URL=$NUXT_PUBLIC_API_URL
-ENV NUXT_PUBLIC_SITE_URL=$NUXT_PUBLIC_SITE_URL
 RUN npm ci
 COPY . .
 ENV NODE_ENV=production

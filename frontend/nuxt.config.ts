@@ -37,7 +37,11 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // Prefer explicit env; in local dev fall back to Laravel directly to avoid /api 404 when proxy/env is missing.
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || process.env.VITE_API_URL || (isDev ? 'http://127.0.0.1:8000/api' : '/api'),
+      // Production default must be absolute when API is on another host (e.g. Render). Same-origin `/api` only works if you add a Nitro proxy.
+      apiUrl:
+        process.env.NUXT_PUBLIC_API_URL ||
+        process.env.VITE_API_URL ||
+        (isDev ? 'http://127.0.0.1:8000/api' : ''),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://kalapak.com",
       /** Must match Cloudflare Turnstile widget; add production hostname in Cloudflare (e.g. *.onrender.com). */
       turnstileSiteKey:
