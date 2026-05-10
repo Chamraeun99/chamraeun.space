@@ -16,6 +16,14 @@ function normalizeDevApiUrl(url) {
   return url
 }
 
+/** Laravel API base used for OAuth full-page redirects (must be absolute when UI uses proxied `/api`). */
+function resolveOAuthApiBaseURL() {
+  const fromNuxt =
+    typeof window !== 'undefined' ? window.__NUXT__?.config?.public?.oauthApiBase : undefined
+  const base = fromNuxt || resolveApiBaseURL()
+  return typeof base === 'string' ? base.replace(/\/$/, '') : ''
+}
+
 function resolveApiBaseURL() {
   // Server runtime (Nuxt SSR on Node/Render)
   if (typeof window === 'undefined') {
@@ -32,9 +40,9 @@ function resolveApiBaseURL() {
   )
 }
 
-/** Full-page OAuth entry points live under /api/auth/… so proxies that only route /api/* still reach Laravel. */
+/** Full-page OAuth hits Laravel (/api/auth/…) — use oauthApiBase when SPA proxies JSON under relative /api. */
 export function getOAuthRedirectUrl(provider) {
-  const base = resolveApiBaseURL().replace(/\/$/, '')
+  const base = resolveOAuthApiBaseURL()
   return `${base}/auth/${provider}/redirect`
 }
 
@@ -44,7 +52,8 @@ const api = axios.create({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
-  withCredentials: true,
+  // Token auth uses Bearer header; credentials caused unnecessary credentialed-CORS friction vs Laravel.
+  withCredentials: false,
 })
 
 api.interceptors.request.use((config) => {

@@ -233,6 +233,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getOAuthRedirectUrl } from '@/services/api'
+import { formatAuthRequestMessage } from '@/utils/authRequestError'
 import VueTurnstile from 'vue-turnstile'
 
 const router = useRouter()
@@ -288,18 +289,7 @@ async function handleRegister() {
     await authStore.register({ ...form.value, turnstile_token: turnstileToken.value })
     router.push('/')
   } catch (e) {
-    const errors = e.response?.data?.errors
-    if (errors) {
-      error.value = Object.values(errors).flat().join(', ')
-    } else {
-      if (!e.response) {
-        error.value = 'Network error. Please check your connection.'
-      } else if (e.response.status === 502) {
-        error.value = 'Server is starting up. Please wait a moment and try again.'
-      } else {
-        error.value = e.response?.data?.message || 'Registration failed'
-      }
-    }
+    error.value = formatAuthRequestMessage(e, 'Registration failed')
   }
 }
 </script>

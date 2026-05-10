@@ -162,6 +162,7 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getOAuthRedirectUrl } from '@/services/api'
+import { formatAuthRequestMessage } from '@/utils/authRequestError'
 import VueTurnstile from 'vue-turnstile'
 
 const router = useRouter()
@@ -189,13 +190,7 @@ async function handleLogin() {
     const redirect = route.query.redirect || (authStore.isAdmin ? '/admin' : '/')
     router.push(redirect)
   } catch (e) {
-    if (!e.response) {
-      error.value = 'Network error. Please check your connection.'
-    } else if (e.response.status === 502) {
-      error.value = 'Server is starting up. Please wait a moment and try again.'
-    } else {
-      error.value = e.response?.data?.message || 'Invalid credentials'
-    }
+    error.value = formatAuthRequestMessage(e, 'Invalid credentials')
   }
 }
 </script>

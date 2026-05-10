@@ -2,6 +2,14 @@ const devApiProxyTarget =
   process.env.NUXT_DEV_API_PROXY || process.env.VITE_DEV_API_PROXY || 'http://127.0.0.1:8000'
 const isDev = process.env.NODE_ENV !== 'production'
 
+/** Production Laravel base (e.g. https://backend.onrender.com/api) baked at build time. */
+const prodAbsoluteApiUrl =
+  process.env.NUXT_PUBLIC_API_URL || process.env.VITE_API_URL || ''
+
+/** Proxy /api on the Node server → Laravel so the browser stays same-origin (avoids flaky CORS on Render). */
+const proxyApiViaNitro =
+  process.env.NODE_ENV === 'production' && prodAbsoluteApiUrl.startsWith('http')
+
 export default defineNuxtConfig({
   // Docker-on-Windows dev can intermittently fail to generate Nitro server files.
   // Disable SSR in local dev to keep the app reliably available at localhost:3000.
@@ -37,12 +45,15 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // Prefer explicit env; in local dev fall back to Laravel directly to avoid /api 404 when proxy/env is missing.
-      // Production default must be absolute when API is on another host (e.g. Render). Same-origin `/api` only works if you add a Nitro proxy.
-      apiUrl:
-        process.env.NUXT_PUBLIC_API_URL ||
-        process.env.VITE_API_URL ||
-        (isDev ? 'http://127.0.0.1:8000/api' : ''),
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://kalapak.com",
+      // In production Docker/Render we proxy `/api/**` → Laravel; browser uses relative `/api`.
+      apiUrl: proxyApiViaNitro
+        ? '/api'
+        : prodAbsoluteApiUrl || (isDev ? 'http://127.0.0.1:8000/api' : ''),
+      /** Used only for OAuth (full-page navigation must hit Laravel URL). Ignored when same host serves API. */
+      oauthApiBase: prodAbsoluteApiUrl || (isDev ? 'http://127.0.0.1:8000/api' : ''),
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL ||
+        (isDev ? 'http://127.0.0.1:3000' : 'https://chamraeun-space-frontend.onrender.com'),
       /** Must match Cloudflare Turnstile widget; add production hostname in Cloudflare (e.g. *.onrender.com). */
       turnstileSiteKey:
         process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.VITE_TURNSTILE_SITE_KEY || '',
@@ -57,6 +68,16 @@ export default defineNuxtConfig({
         changeOrigin: true,
       },
     },
+    ...(proxyApiViaNitro && prodAbsoluteApiUrl
+      ? {
+          routeRules: {
+            '/api/**': {
+              cors: true,
+              proxy: `${prodAbsoluteApiUrl.replace(/\/$/, '')}/**`,
+            },
+          },
+        }
+      : {}),
   },
   css: [
     'aos/dist/aos.css',
