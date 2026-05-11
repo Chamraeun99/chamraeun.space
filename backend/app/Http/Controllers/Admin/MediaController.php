@@ -72,7 +72,26 @@ class MediaController extends Controller
 
         try {
             $file = $request->file('file');
-            $provider = $request->input('storage_provider', 'supabase');
+            $requestedProvider = $request->input('storage_provider');
+
+            $supabase = app(SupabaseStorage::class);
+            $supabaseConfigured = $supabase->isConfigured();
+            $cloudinaryConfigured = !empty((string) config('cloudinary.cloud_url'));
+
+            $provider = $requestedProvider ?: ($supabaseConfigured ? 'supabase' : ($cloudinaryConfigured ? 'cloudinary' : 'supabase'));
+
+            if ($provider === 'supabase' && !$supabaseConfigured) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Supabase storage is not configured. Switch storage provider to Cloudinary or set SUPABASE_URL and SUPABASE_SECRET_KEY on the backend.',
+                ], 422);
+            }
+            if ($provider === 'cloudinary' && !$cloudinaryConfigured) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cloudinary is not configured. Set CLOUDINARY_URL (or CLOUDINARY_CLOUD_NAME + CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET) on the backend.',
+                ], 422);
+            }
 
             if ($provider === 'cloudinary') {
                 $result = $this->cloudinary()->uploadApi()->upload($file->getRealPath(), [
@@ -82,9 +101,8 @@ class MediaController extends Controller
                 $path = $result['public_id'];
                 $url = $result['secure_url'];
             } else {
-                $storage = app(SupabaseStorage::class);
-                $path = $storage->upload($file, 'media');
-                $url = $storage->url($path);
+                $path = $supabase->upload($file, 'media');
+                $url = $supabase->url($path);
             }
 
             $media = Media::create([
@@ -94,7 +112,7 @@ class MediaController extends Controller
                 'disk' => $provider,
                 'mime_type' => $file->getMimeType(),
                 'size' => $file->getSize(),
-                'uploaded_by' => auth()->id(),
+                'uploaded_by' => $request->user()?->id,
             ]);
 
             $responseData = $media->toArray();
