@@ -448,11 +448,27 @@ async function fetchMedia(page = 1) {
   }
 }
 
+function formatUploadError(err) {
+  const d = err.response?.data
+  if (d?.errors && typeof d.errors === 'object') {
+    const fileErr = d.errors.file
+    if (Array.isArray(fileErr) && fileErr[0]) return String(fileErr[0])
+    if (typeof fileErr === 'string') return fileErr
+    const firstKey = Object.keys(d.errors)[0]
+    const vals = firstKey ? d.errors[firstKey] : null
+    if (Array.isArray(vals) && vals[0]) return String(vals[0])
+  }
+  return d?.message || err.message || 'Upload failed'
+}
+
 async function uploadFiles(e) {
-  const files = Array.from(e.target.files)
+  const files = Array.from(e.target.files || [])
   if (!files.length) return
   uploading.value = true
   uploadProgress.value = { current: 0, total: files.length }
+
+  let ok = 0
+  const failures = []
 
   for (const file of files) {
     const fd = new FormData()
@@ -460,15 +476,28 @@ async function uploadFiles(e) {
     fd.append('storage_provider', storageProvider.value)
     try {
       await adminApi.uploadMedia(fd)
+      ok++
     } catch (err) {
-      uiStore.showToast(`Failed to upload: ${file.name}`, 'error')
+      failures.push({ name: file.name, message: formatUploadError(err) })
     }
     uploadProgress.value.current++
   }
 
   uploading.value = false
-  uiStore.showToast(`${files.length} file${files.length > 1 ? 's' : ''} uploaded!`)
-  e.target.value = ''
+
+  if (ok > 0 && failures.length === 0) {
+    uiStore.showToast(`${ok} file${ok > 1 ? 's' : ''} uploaded!`)
+  } else if (ok > 0 && failures.length > 0) {
+    const f = failures[0]
+    const hint = failures.length > 1 ? ` (+${failures.length - 1} more)` : ''
+    uiStore.showToast(`${ok} uploaded, ${failures.length} failed${hint}. ${f.name}: ${f.message}`, 'warning')
+  } else if (failures.length > 0) {
+    const f = failures[0]
+    const more = failures.length > 1 ? ` (${failures.length} files)` : ''
+    uiStore.showToast(`Upload failed${more}: ${f.name} — ${f.message}`, 'error')
+  }
+
+  if (e.target && 'value' in e.target) e.target.value = ''
   fetchMedia()
 }
 
