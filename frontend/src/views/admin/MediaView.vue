@@ -359,7 +359,11 @@ const uploading = ref(false)
 const uploadProgress = ref({ current: 0, total: 0 })
 const isDragging = ref(false)
 const storageProvider = ref(localStorage.getItem('media_storage_provider') || 'supabase')
-watch(storageProvider, (v) => localStorage.setItem('media_storage_provider', v))
+watch(storageProvider, (v) => {
+  localStorage.setItem('media_storage_provider', v)
+  selectedIds.value = []
+  fetchMedia(1)
+})
 const allowedProviders = ref('both')
 const meta = ref({ current_page: 1, last_page: 1, total: 0 })
 
@@ -438,6 +442,9 @@ async function fetchMedia(page = 1) {
     const params = { page: typeof page === 'number' ? page : 1 }
     if (search.value) params.search = search.value
     if (typeFilter.value) params.type = typeFilter.value
+    if (storageProvider.value === 'supabase' || storageProvider.value === 'cloudinary') {
+      params.disk = storageProvider.value
+    }
     const { data } = await adminApi.getMedia(params)
     media.value = data.data || []
     meta.value = data.meta || { current_page: 1, last_page: 1, total: 0 }

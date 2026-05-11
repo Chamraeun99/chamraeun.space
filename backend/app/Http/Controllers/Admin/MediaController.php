@@ -37,6 +37,16 @@ class MediaController extends Controller
             }
         }
 
+        // Filter by storage backend (upload sets disk to supabase | cloudinary; legacy rows may be `public` and still use Supabase URLs).
+        if ($request->filled('disk')) {
+            $disk = $request->input('disk');
+            if ($disk === 'supabase') {
+                $query->whereIn('disk', ['supabase', 'public']);
+            } elseif ($disk === 'cloudinary') {
+                $query->where('disk', 'cloudinary');
+            }
+        }
+
         $media = $query->paginate($request->input('per_page', 24));
 
         $items = collect($media->items())->map(function ($item) {
