@@ -827,7 +827,11 @@
 
       <!-- ── Content ── -->
       <main class="flex-1 p-4 sm:p-6">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <KeepAlive :max="20">
+            <component :is="Component" v-if="Component" :key="route.fullPath" />
+          </KeepAlive>
+        </router-view>
       </main>
     </div>
 

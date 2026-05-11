@@ -3,7 +3,17 @@ import { useAuthStore } from "@/stores/auth";
 export default defineNuxtPlugin((nuxtApp) => {
   const router = nuxtApp.$router;
 
-  router.beforeEach(async (to) => {
+  router.beforeEach(async (to, from) => {
+    // Re-clicking the current admin sidebar link should not re-run navigation (avoids remount + refetch).
+    if (
+      from.name != null &&
+      to.fullPath === from.fullPath &&
+      typeof to.path === "string" &&
+      to.path.startsWith("/admin")
+    ) {
+      return false;
+    }
+
     const authStore = useAuthStore();
 
     // OAuth return URLs carry ?token=… — must not run prefetch fetchMe with a stale

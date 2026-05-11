@@ -102,6 +102,8 @@ export default <RouterConfig>{
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition;
     if (to.hash) return { el: to.hash, behavior: "smooth" };
+    // Same URL (e.g. active nav clicked again) — do not scroll main content to top.
+    if (from.fullPath === to.fullPath) return false;
     return { top: 0, behavior: "smooth" };
   },
 };
