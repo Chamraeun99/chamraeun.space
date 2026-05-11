@@ -35,7 +35,7 @@ return [
         'redirect' => env('GITHUB_REDIRECT_URI'),
     ],
     'cloudinary' => [
-        'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'kalapak'),
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'drocfai14'),
         'api_key' => env('CLOUDINARY_API_KEY'),
         'api_secret' => env('CLOUDINARY_API_SECRET'),
     ],
