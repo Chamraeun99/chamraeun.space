@@ -122,9 +122,9 @@ services:
         sync: false
       - key: SUPABASE_ANON_KEY
         sync: false
-      # anon_authorization = apikey(anon JWT) + Authorization(service_role). service_both = both use service_role.
+      # service_both = apikey + Authorization both service_role (default for Laravel server uploads). anon_authorization = mixed headers from same project only.
       - key: SUPABASE_STORAGE_GATEWAY
-        value: anon_authorization
+        value: service_both
       - key: SUPABASE_BUCKET
         value: chamraeun.space-picture
       - key: SUPABASE_REGION

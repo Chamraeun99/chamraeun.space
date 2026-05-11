@@ -16,13 +16,30 @@ class SupabaseStorage
     /** Optional; REST gateway often expects `apikey` + `Authorization` (use service role server-side). */
     protected ?string $anonKey;
 
+    /** Trim whitespace and strip one pair of wrapping quotes (common copy/paste from Render/dashboard). */
+    protected static function normalizeEnvString(?string $value): string
+    {
+        $v = trim((string) $value);
+        if ($v === '') {
+            return '';
+        }
+        if (
+            (str_starts_with($v, '"') && str_ends_with($v, '"'))
+            || (str_starts_with($v, "'") && str_ends_with($v, "'"))
+        ) {
+            $v = substr($v, 1, -1);
+        }
+
+        return trim($v);
+    }
+
     public function __construct()
     {
-        $this->url = rtrim(trim((string) config('services.supabase.url')), '/');
-        $this->key = trim((string) config('services.supabase.secret_key'));
-        $this->bucket = trim((string) config('services.supabase.bucket'));
+        $this->url = rtrim(self::normalizeEnvString(config('services.supabase.url')), '/');
+        $this->key = self::normalizeEnvString(config('services.supabase.secret_key'));
+        $this->bucket = self::normalizeEnvString(config('services.supabase.bucket'));
         $anon = config('services.supabase.anon_key');
-        $anonTrimmed = is_string($anon) ? trim($anon) : '';
+        $anonTrimmed = is_string($anon) ? self::normalizeEnvString($anon) : '';
         $this->anonKey = $anonTrimmed !== '' ? $anonTrimmed : null;
     }
 
@@ -31,11 +48,11 @@ class SupabaseStorage
      */
     protected function storageHeaders(array $extra = []): array
     {
-        $gateway = config('services.supabase.storage_gateway', 'anon_authorization');
+        $gateway = config('services.supabase.storage_gateway', 'service_both');
 
         $serviceJwt = $this->key;
 
-        // Default: anon in apikey + service JWT in Authorization (fixes many “signature verification failed” responses).
+        // service_both: standard for server-side uploads. anon_authorization only when anon + service JWT match same project.
         if ($gateway === 'service_both') {
             $apikey = $serviceJwt;
             $bearer = $serviceJwt;
@@ -83,9 +100,10 @@ class SupabaseStorage
             return $filename;
         }
 
-        $gatewayHint = (config('services.supabase.storage_gateway') ?? 'anon_authorization') === 'anon_authorization'
-            ? 'Set SUPABASE_ANON_KEY (public anon JWT) and SUPABASE_SECRET_KEY (service_role JWT) from the same project as SUPABASE_URL. If uploads still fail, set SUPABASE_STORAGE_GATEWAY=service_both.'
-            : 'Set SUPABASE_SECRET_KEY to the full service_role JWT from Supabase Dashboard → Settings → API. Same project ref as SUPABASE_URL. Try SUPABASE_STORAGE_GATEWAY=anon_authorization with SUPABASE_ANON_KEY set.';
+        $gateway = config('services.supabase.storage_gateway') ?? 'service_both';
+        $gatewayHint = $gateway === 'anon_authorization'
+            ? 'SUPABASE_ANON_KEY and SUPABASE_SECRET_KEY must be JWTs from the same Supabase project as SUPABASE_URL, or set SUPABASE_STORAGE_GATEWAY=service_both and use only service_role in SUPABASE_SECRET_KEY.'
+            : 'Use SUPABASE_SECRET_KEY = full service_role JWT from Dashboard → Settings → API (same project as SUPABASE_URL). Trim quotes/newlines. Legacy keys look like eyJ... ; ensure you did not paste the anon key by mistake.';
 
         throw new \RuntimeException(
             'Supabase storage upload failed (HTTP '
