@@ -34,15 +34,6 @@ return [
         'client_secret' => env('GITHUB_CLIENT_SECRET'),
         'redirect' => env('GITHUB_REDIRECT_URI'),
     ],
-    'supabase' => [
-    'url'        => env('SUPABASE_URL'),
-    'secret_key' => env('SUPABASE_SECRET_KEY'), // ត្រូវតែជា Service Role Key (sb_secret...)
-    'anon_key'   => env('SUPABASE_ANON_KEY'),   // ត្រូវតែជា Anon Key (sb_publishable...)
-    'bucket'     => env('SUPABASE_BUCKET', 'chamraeun.space-picture'),
-    
-    // បើអ្នកប្រើ Authenticated ក្នុង Supabase, Gateway ត្រូវតែជា 'anon_authorization'
-    'storage_gateway' => env('SUPABASE_STORAGE_GATEWAY', 'anon_authorization'),
-],
 
     'resend' => [
         'key' => env('RESEND_API_KEY'),
